@@ -1,0 +1,6 @@
+{
+  "name": "29 Card Game",
+  "description": "Indian 29 (Twenty-Nine) Card Game with realistic AI players, interactive AI mentor tutorial, high-fidelity SFX, visual VFX, and modern luxury design.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

@@ -1,0 +1,67 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    // User Profile Document
+    match /users/{userId} {
+      // Anyone authenticated can view public profiles
+      allow read: if isAuthenticated();
+      
+      // User can only update their own basic profile fields (bio, displayName, avatar)
+      // Disallow client manipulation of level, economy (coins/diamonds), and verification flags
+      allow create: if isOwner(userId);
+      allow update: if isOwner(userId) 
+        && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['coins', 'diamonds', 'level', 'vipTier', 'isBanned']);
+      allow delete: if false; // Profiles must be closed via administrative endpoints
+
+      // Friends subcollection
+      match /friends/{friendId} {
+        allow read: if isOwner(userId);
+        allow write: if isOwner(userId);
+      }
+
+      // Friend requests subcollection
+      match /friendRequests/{requestId} {
+        allow read: if isOwner(userId);
+        allow create: if isAuthenticated();
+        allow update, delete: if isOwner(userId);
+      }
+
+      // Unlocked Achievements
+      match /achievements/{achievementId} {
+        allow read: if isAuthenticated();
+        // Disallow direct writes from untrusted client - must come through verified triggers
+        allow write: if false;
+      }
+    }
+
+    // Match Records & Competitive Results
+    match /matches/{matchId} {
+      allow read: if isAuthenticated();
+      // Only server functions or match coordinator can finalize match scores
+      allow create: if isAuthenticated();
+      allow update, delete: if false;
+    }
+
+    // Leaderboards
+    match /leaderboards/{boardId} {
+      allow read: if true;
+      allow write: if false; // Server-computed read-only collection
+    }
+
+    // Global Configuration & Remote Config fallback
+    match /config/{docId} {
+      allow read: if true;
+      allow write: if false;
+    }
+  }
+}
