@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">29 Card Game</string>
+    <string name="google_app_id" translatable="false">1:875903236325:android:royal29cardgame</string>
 </resources>
